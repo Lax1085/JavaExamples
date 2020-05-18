@@ -1,11 +1,4 @@
-
-
-
 package movetagservices;
-/**
- *
- * @author ALopez
- */
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Rectangle;
@@ -42,8 +35,8 @@ import com.ibm.as400.javax.print.ISeriesPrintService;
  *
  * @author alopez
  *  Class: MoveTagServices
- *  Arguments: mode, tagNumber, From Location, From Department, From Plant, User ID
- *  description: Creates a PDF document of a Move Tag identify material on cart
+ *  Arguments: mode, tagNumber, FromLocation, FromDepartment, FromPlant, User ID
+ *  description: generates a PDF document of a Move Tag to identify the material on a cart.
  */
 public class MoveTagServices
 {
@@ -72,8 +65,8 @@ public class MoveTagServices
     static ResultSet rset;
     static Statement AS400s2;
     static ResultSet rset2;
-    static final String username = "JAVAPROG";
-    static final String password = "JAVAPROG";
+    static final String username = "*****";
+    static final String password = "*****";
     static final String databaseConnection = "QS36F";    
     public static void main(String[] args) throws SQLException, FileNotFoundException, DocumentException, IOException, InterruptedException, ParseException, PrinterException
     {
@@ -83,11 +76,9 @@ public class MoveTagServices
     	String fromDept="DPT";
     	String fromPlant="2";
     	String userId="AL";
-    	String[] arguments=args;
-    	
+    	String[] arguments=args;	
         mode="P";
-        //tagNo = "123456789";
-        String dir="";
+	String dir="";
 
         if(new File("/esdi/websmart/MoveTags").exists()){
             dir="/esdi/websmart/MoveTags";
@@ -111,27 +102,27 @@ public class MoveTagServices
                     printerName = args[4];		
 	        tagNo = args[5];                
         }
+	    
+        //GENERATE TEMPORARY FILE NAME.
         if(mode.equals("P")){            
             pdfFileName = dir+"/MoveTag_" + tagNo + ".pdf"; 
         }
-		else if (mode.equals("D")){
+	else if (mode.equals("D")){
             
-            pdfFileName = dir+"/MoveTag_Display_" + userId + ".pdf";
-            //System.out.println("Creating Move Tag for Display: "+tagNo  +" Executed by : "+userId);
-		}
-		else
-		{
-            System.out.println("No valid mode entered");
-            for (String s: arguments) {
-                System.out.println("'" + s + "'");
-            }         			
+		pdfFileName = dir+"/MoveTag_Display_" + userId + ".pdf";
+       		//System.out.println("Creating Move Tag for Display: "+tagNo  +" Executed by : "+userId);
+	}
+	else
+	{
+	    System.out.println("No valid mode entered");
+	    for (String s: arguments) {
+		System.out.println("'" + s + "'");
+	    }         			
             System.exit(1);
-		}
+	}
         printerName="NETPRT94";
         String fileName = "";
-        String dieNumber = "";
-        //String filePath = "";
-         
+        String dieNumber = "";         
         try {
             database = args[6].toString().trim();	
 		}
@@ -143,9 +134,6 @@ public class MoveTagServices
         	database = "QS36F";
         
         try{
-            //String database = "QS36F";
-
-            //System.out.println("Connecting...");
             // Load the IBM Toolbox for Java JDBC driver.
             DriverManager.registerDriver(new com.ibm.as400.access.AS400JDBCDriver());
             //AS400Con = DriverManager.getConnection ("jdbc:as400://10.10.1.2/"+ ";user=" + username + ";password=" + password);
@@ -617,8 +605,7 @@ public class MoveTagServices
 				fSize = 14;
 				cb1.setFontAndSize(bf, fSize);
 
-				//String tagNo2 = String.format("%015d", Integer.parseInt(tagNo));
-				//System.out.println(tagNo2);
+
 
 
 				//Add Heat Treat Stamp
@@ -785,7 +772,7 @@ public class MoveTagServices
 
     }
     /*
-    *   Get Fab Print Path
+    *   Get Fab Print File Path
     */    
     private static String writeFabPrint(int Printsequence) throws SQLException{
     	String numberAsString = String.valueOf(Printsequence);
@@ -851,7 +838,7 @@ public class MoveTagServices
 		return extrusionDate;
     }
     /*
-    *   get for Die Print path
+    *   get for Die Print file path
     */    
     private static String getDiePrint() throws SQLException{
     	String die=MoveTag.get("MMT_DIE");
@@ -912,7 +899,7 @@ public class MoveTagServices
     }
 
     /*
-    *  Check if material passed through oven
+    *  Check if material passed through heat treat 
     */  	  
     private static boolean getOvnDetails()throws SQLException{
         boolean Inspected;
