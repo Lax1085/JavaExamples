@@ -1,11 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package deliveryticketupload;
-
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -25,8 +19,9 @@ import javax.swing.JOptionPane;
  * @author alopez
  *  Class: DeliveryTicketUpload
  *  Arguments: 
- *  description: Prompts user to upload a scanned document, and verify data of documents is corerect.
-     If correct, it will store on a network drive in its corresponding folder based on data from invoice. 
+ *  description: The swing application prompts user to upload a scanned invoices for digital storage, and verify data of the documents.
+     If correct, it will store on a network drive in its corresponding folder based on data retrieved from the database using the 
+     invoice number. 
  */
 
 public class DeliveryTicketUpload extends javax.swing.JFrame  {
@@ -255,15 +250,13 @@ public class DeliveryTicketUpload extends javax.swing.JFrame  {
             }
         });
     }
+
     private void initConnection(){
         try{
-            String userName = "JAVAPROG";
-            String password = "JAVAPROG";
-            //String database = "QS36F";
+            String userName = "*****";
+            String password = "****";
             String database = "QS36F";
-            //System.out.println("Connecting...");
             DriverManager.registerDriver(new com.ibm.as400.access.AS400JDBCDriver());
-             //DriverManager.deregisterDriver(new com.ibm.as400.access.AS400JDBCDriver());
             AS400Con = DriverManager.getConnection ("jdbc:as400://10.10.1.2/" + database + ";user=" + userName + ";password=" + password);
             // Create a statement
             AS400s = (Statement) AS400Con.createStatement();     
@@ -275,6 +268,13 @@ public class DeliveryTicketUpload extends javax.swing.JFrame  {
             System.exit(0);
         }
     }
+    /************************
+    * function validateEntry()
+    * Arguments: deliveryTicket number, invoice number
+    *
+    * Description: validates that the invoice number and the delivery ticket are related. 
+    * Any mismatch program will reject the file and have user validate again.
+    ***********************/
     private void validateEntry(String delTicket, String invoiceNumber) throws SQLException, IOException
     {
         jButton2.setEnabled(false);
@@ -336,22 +336,25 @@ public class DeliveryTicketUpload extends javax.swing.JFrame  {
                 return;
         } 
     }
+    /* function uploadFile()
+     * descriptions: uploads the uploaded file from the users PC, to SE-FS1\Public\Invoicing
+     */
     public void uploadFile(){
-        //System.out.println(System.getProperty("user.home") + "\\Desktop\\deliveryticketscan");
-        //return;
         File sourceFile= new File(scanfile);     
         
+        //create date string using data retrieved fromt table.
         String date=Invoice.get("IVH_INVDTE").substring(4,6)+"."+Invoice.get("IVH_INVDTE").substring(6,8)+"."+Invoice.get("IVH_INVDTE").substring(2,4);
+        //create path string using data retrieved from table.
         String path="\\\\SE-FS1\\Public\\Invoicing\\"+Invoice.get("IVH_INVDTE").substring(0, 4)+" Invoices\\"+Invoice.get("CUS_NAME")+"\\"+date+"\\";
+        //create filname using the inovice numbers minus the last two digits)
         String filename=Invoice.get("IVH_TICKET").substring(0,Invoice.get("IVH_TICKET").length()-2)+".pdf";
-        System.out.println(path);
         File directory=new File(path);
         boolean directoryExists=true;
+        
+        //create directory if the directory generated does not already exist.
         if(!directory.exists())
         {
             directoryExists=false;
-            //JOptionPane.showMessageDialog(null, "Creating Directory"+directory.getAbsolutePath()); 
-            //Files.createDirectory(directory.toPath());
             if(directory.mkdirs()){
                 System.out.println("Directory Created");
                 directoryExists=true;
@@ -359,6 +362,8 @@ public class DeliveryTicketUpload extends javax.swing.JFrame  {
             else
                 System.out.println("Directory not created");
         }
+         
+        //if the directory exists then upload file to the respective path generated.
         if(directoryExists){
             File targetFile = new File(path + "/" + filename);
             if(!targetFile.exists()){
@@ -373,6 +378,8 @@ public class DeliveryTicketUpload extends javax.swing.JFrame  {
                 JOptionPane.showMessageDialog(null, "Delivery ticket PDF already exists. Contact IT.");    
             }
         }
+         
+         //reset view for the user.
         deliveryTicketInput.setText("");
         invoiceInput.setText("");   
         jButton2.setEnabled(false);
